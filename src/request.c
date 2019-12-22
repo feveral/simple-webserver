@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "request.h"
 #include "utility.h"
@@ -10,7 +11,7 @@ void printRequest(Request *request)
 {
     printf("path = %s\n", request->path);
     printf("querystring = \n");
-    listForEach(request->qslist, printKV);
+    listForEach(request->qslist, (void (*)(void *))printKV);
 }
 
 Method toMethod(char *string)
@@ -26,7 +27,7 @@ Request *HttpRawPacketToRequest(char *packet)
     List *startlineItems = split((listGet(lines, 0))->value, " ");
     List *routeItems = split((listGet(startlineItems, 1))->value, "?");
     
-    Method method = toMethod(listGet(startlineItems, 0));
+    Method method = toMethod(listGet(startlineItems, 0)->value);
     char *path = (listGet(routeItems, 0))->value;
     char *queryString = listGet(routeItems, 1)->value;
 
@@ -65,4 +66,5 @@ Request *requestNew(Method method, char *path, char *queryString)
     request->path = malloc(strlen(path) + 1);
     memcpy(request->path, path, strlen(path) + 1);
     request->qslist = queryStringNew(queryString);
+    return request;
 }

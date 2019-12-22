@@ -1,4 +1,5 @@
 #include "response.h"
+#include "utility.h"
 #include "list.h"
 
 Response *responseNew()

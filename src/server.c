@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 
 #include "server.h"
+#include "utility.h"
 #include "request.h"
 #include "response.h"
 #include "kv.h"
@@ -14,7 +15,7 @@
 Response *staticHandler(Request *req)
 {
     Response *response = responseNew();
-    responseSetBody(response, readfile((request->path) + 1));
+    responseSetBody(response, readfile((req->path) + 1));
     return response;
 }
 

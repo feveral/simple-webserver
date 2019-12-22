@@ -8,7 +8,7 @@ typedef struct server {
 } Server;
 
 
-Server *ServerNew(char*, char*);
+Server *serverNew(char*, char*);
 void serverServe(Server *);
 
 #endif
