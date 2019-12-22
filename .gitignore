@@ -1,0 +1,4 @@
+*.o
+peda*
+.gdb_history
+webserver
