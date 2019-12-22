@@ -29,25 +29,27 @@ List *split(char *string, const char *token)
     return list;
 }
 
+size_t fileLength(char *filename)
+{
+    FILE *file = fopen(filename, "r");
+    size_t length;
+    fseek(file, 0, SEEK_END);
+    length = ftell(file);
+    rewind(file);
+    return length;
+}
+
 char *readfile(char *filename)
 {
     FILE *file = fopen(filename, "r");
-
     char *buff;
-    char  lens[25];
-    size_t len;
-
-    fseek(file, 0, SEEK_END);
-    len = ftell(file);
-    sprintf(lens, "%ld", (long int) len);
-    rewind(file);
-
-    buff = malloc(sizeof(char) * len);
-    fread(buff, sizeof(char), len, file);
+    size_t length = fileLength(filename);
+    buff = malloc(sizeof(char) * length);
+    fread(buff, sizeof(char), length, file);
     return buff;
 }
 
-char * concat(const char *s1, const char *s2)
+char *concat(const char *s1, const char *s2)
 {
     char *result = malloc(strlen(s1) + strlen(s2) + 1);
     strcpy(result, s1);

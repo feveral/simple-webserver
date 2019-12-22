@@ -11,7 +11,7 @@ void printRequest(Request *request)
 {
     printf("path = %s\n", request->path);
     printf("querystring = \n");
-    listForEach(request->qslist, (void (*)(void *))printKV);
+    listForEach(request->qslist, printKV);
 }
 
 Method toMethod(char *string)

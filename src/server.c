@@ -16,6 +16,14 @@ Response *staticHandler(Request *req)
 {
     Response *response = responseNew();
     responseSetBody(response, readfile((req->path) + 1));
+    responseSetContentLength(response, fileLength((req->path) + 1));
+    responseAddHeader(response, kvNew("Content-Type", findMimeType(req->path)));
+    return response;
+}
+
+Response *directoryHandler(Request *req)
+{
+    Response *response = responseNew();
     return response;
 }
 
@@ -30,8 +38,9 @@ void handlePacket(int fd, struct sockaddr_in *sin) {
 
     Response *response = staticHandler(request);
     char *resPacket = responsePacket(response);
-    send(fd, resPacket, strlen(resPacket), 0);
-
+    size_t packetLength = (response->statusLength) + (response->headerLength) + (response->contentLength);
+    printf("packetLength = %d\n", packetLength);
+    send(fd, resPacket, packetLength, 0);
     close(fd);
 
     // printf("[info] disconnected from %s:%d\n",
