@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <signal.h>
 
 #include "server.h"
 #include "utility.h"
@@ -35,8 +36,7 @@ static void handlePacket(Server *server, int fd, struct sockaddr_in *sin) {
     size_t packetLength = (response->statusLength) + (response->headerLength) + (response->contentLength);
     printf("packetLength = %d\n", packetLength);
     send(fd, resPacket, packetLength, 0);
-    close(fd);
-
+    freeResponse(response);
     // printf("[info] disconnected from %s:%d\n",
     //         inet_ntoa(sin->sin_addr), ntohs(sin->sin_port));
 }
@@ -81,6 +81,7 @@ void serverServe(Server *server)
     pid_t pid;
     int pfd;
     struct sockaddr_in psin;
+    signal(SIGCHLD, SIG_IGN);
     while(1) {
         int val = sizeof(psin);
         bzero(&psin, sizeof(psin));

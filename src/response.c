@@ -109,6 +109,12 @@ char* findMimeType(char *filename)
     else return "text/plain";
 }
 
+void freeResponse(Response *response)
+{
+    listFree(response->headers);
+    free(response);
+}
+
 Response *responseIndex(char *dirPath)
 {
     char *indexPath = concat(dirPath, "/index.html");

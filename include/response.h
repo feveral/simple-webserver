@@ -29,6 +29,7 @@ void responseSetStatusLength(Response *response, size_t length);
 void responseSetHeaderLength(Response *response, size_t length);
 void responseSetContentLength(Response *response, size_t length);
 char* findMimeType(char *filename);
+void freeResponse(Response *response);
 
 Response *responseIndex(char *dirPath);
 Response *response403(char *filepath);
