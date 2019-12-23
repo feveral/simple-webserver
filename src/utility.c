@@ -47,12 +47,14 @@ char *readfile(char *filename)
     size_t length = fileLength(filename);
     buff = malloc(sizeof(char) * length);
     fread(buff, sizeof(char), length, file);
+    close(file);
     return buff;
 }
 
 int isFile(char *filename)
 {
     FILE *file = fopen(filename, "r");
+    close(file);
     if (file) {
         return 1;
     } else return 0;
@@ -62,6 +64,7 @@ int isDir(char *filename)
 {
     DIR* dir = opendir(filename);
     if (dir) {
+        closedir(dir);
         return 1;
     } else return 0;
 }

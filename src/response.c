@@ -108,3 +108,29 @@ char* findMimeType(char *filename)
     else if (!strncmp(ext, "tar.gz", 5)) return "application/x-gzip";
     else return "text/plain";
 }
+
+Response *responseIndex(char *dirPath)
+{
+    char *indexPath = concat(dirPath, "/index.html");
+    if (isFile(indexPath)) {
+        return responseStaticFile(indexPath);
+    } else return NULL;
+}
+
+Response *response403(char *filepath)
+{
+    Response *response = responseNew();
+    responseSetStatus(response, FORBIDDEN);
+    responseSetBody(response, "<h1>Forbidden</h1><p>File is missing</p>");
+    responseSetContentLength(response, 39);
+    return response;
+}
+
+Response *responseStaticFile(char *filepath)
+{
+    Response *response = responseNew();
+    responseSetBody(response, readfile(filepath));
+    responseSetContentLength(response, fileLength(filepath));
+    responseAddHeader(response, kvNew("Content-Type", findMimeType(filepath)));
+    return response;
+}
