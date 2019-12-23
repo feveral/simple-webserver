@@ -29,7 +29,9 @@ Request *HttpRawPacketToRequest(char *packet)
     
     Method method = toMethod(listGet(startlineItems, 0)->value);
     char *path = (listGet(routeItems, 0))->value;
-    char *queryString = listGet(routeItems, 1)->value;
+    char *queryString;
+    if (routeItems->count == 1) queryString = "";
+    else queryString = listGet(routeItems, 1)->value;
 
     Request *request = malloc(sizeof(Request));
     request->method = method;
