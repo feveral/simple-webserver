@@ -8,6 +8,7 @@ OBJS = \
 		src/request.o \
 		src/response.o \
 		src/kv.o \
+		src/handler.o \
 
 EXEC = webserver
 

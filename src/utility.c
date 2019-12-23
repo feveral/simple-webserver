@@ -1,3 +1,4 @@
+#include <dirent.h>
 #include <stdio.h>
 #include <string.h>
 #include "utility.h"
@@ -49,6 +50,23 @@ char *readfile(char *filename)
     return buff;
 }
 
+int isFile(char *filename)
+{
+    FILE *file = fopen(filename, "r");
+    if (file) {
+        return 1;
+    } else return 0;
+}
+
+int isDir(char *filename)
+{
+    DIR* dir = opendir(filename);
+    if (dir) {
+        return 1;
+    } else return 0;
+}
+
+
 char *concat(const char *s1, const char *s2)
 {
     char *result = malloc(strlen(s1) + strlen(s2) + 1);
@@ -56,3 +74,4 @@ char *concat(const char *s1, const char *s2)
     strcat(result, s2);
     return result;
 }
+

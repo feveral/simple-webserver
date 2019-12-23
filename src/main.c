@@ -9,11 +9,15 @@
 #include "server.h"
 #include "response.h"
 #include "utility.h"
+#include "handler.h"
 #include "list.h"
 
 int main(int argc, char *argv[])
 {
     Server *server = serverNew("./", argv[1]);
+
+    serverUse(server, staticHandler);
+    serverUse(server, directoryHandler);
     serverServe(server);
     return 0;
 }

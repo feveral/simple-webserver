@@ -11,23 +11,9 @@
 #include "request.h"
 #include "response.h"
 #include "kv.h"
+#include "handler.h"
 
-Response *staticHandler(Request *req)
-{
-    Response *response = responseNew();
-    responseSetBody(response, readfile((req->path) + 1));
-    responseSetContentLength(response, fileLength((req->path) + 1));
-    responseAddHeader(response, kvNew("Content-Type", findMimeType(req->path)));
-    return response;
-}
-
-Response *directoryHandler(Request *req)
-{
-    Response *response = responseNew();
-    return response;
-}
-
-void handlePacket(int fd, struct sockaddr_in *sin) {
+static void handlePacket(Server *server, int fd, struct sockaddr_in *sin) {
     // printf("[info] connected from %s:%d\n",
     //         inet_ntoa(sin->sin_addr), ntohs(sin->sin_port));
 
@@ -36,7 +22,15 @@ void handlePacket(int fd, struct sockaddr_in *sin) {
     Request *request = HttpRawPacketToRequest(reqPacket);
     printRequest(request);
 
-    Response *response = staticHandler(request);
+    ListCell *current = (server->handlers)->head;
+    Response *response = NULL;
+    while(current != NULL) {
+        Handler *handler = (current->value);
+        response = (*handler)(request);
+        current = current->next;
+        if (response) break;
+    }
+
     char *resPacket = responsePacket(response);
     size_t packetLength = (response->statusLength) + (response->headerLength) + (response->contentLength);
     printf("packetLength = %d\n", packetLength);
@@ -45,6 +39,13 @@ void handlePacket(int fd, struct sockaddr_in *sin) {
 
     // printf("[info] disconnected from %s:%d\n",
     //         inet_ntoa(sin->sin_addr), ntohs(sin->sin_port));
+}
+
+void serverUse(Server *server, Handler handler)
+{
+    Handler *hp = malloc(sizeof(Handler));
+    *(hp) = handler;
+    listAppend(server->handlers, listCellNew(hp, sizeof(Handler)));
 }
 
 Server *serverNew(char *path, char *port)
@@ -65,6 +66,7 @@ Server *serverNew(char *path, char *port)
     Server *server = malloc(sizeof(Server));
     server->path = malloc((sizeof(char))* strlen(path)+1);
     server->port = malloc((sizeof(char))* strlen(port)+1);
+    server->handlers = listNew();
     server->fd = fd;
 
     memcpy(server->path, path, (sizeof(char))* strlen(path)+1);
@@ -86,7 +88,7 @@ void serverServe(Server *server)
         if((pid = fork()) < 0) perror("fork");
         else if(pid == 0) {
             close(server->fd);
-            handlePacket(pfd, &psin);
+            handlePacket(server, pfd, &psin);
             exit(0);
         }
         close(pfd);

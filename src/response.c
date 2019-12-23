@@ -9,6 +9,9 @@ Response *responseNew()
     Response *response = malloc(sizeof(Response));
     response->status = OK;
     response->headers = listNew();
+    response->statusLength = 0;
+    response->headerLength = 0;
+    response->contentLength = 0;
     response->body = "";
     return response;
 }
@@ -53,6 +56,7 @@ char* responsePacket(Response *response)
     else if (response->status == FORBIDDEN) packet = "HTTP/1.0 403 Forbidden\r\n";
     else if (response->status == NOT_FOUND) packet = "HTTP/1.0 404 Not Found\r\n";
     responseSetStatusLength(response, strlen(packet));
+
 
     // Headers
     ListCell *current = (response->headers)->head;
