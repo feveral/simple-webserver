@@ -29,7 +29,7 @@ static Response *execHandler(Server *server, Request *request)
 
 static void printConnectInfo(struct sockaddr_in *sin) 
 {
-    changePrintColor("yellow");
+    changePrintColor("bold-yellow");
     printf("[info] connected from %s:%d\n",
             inet_ntoa(sin->sin_addr), ntohs(sin->sin_port));
     changePrintColor("white");
@@ -47,7 +47,6 @@ static void handlePacket(Server *server, int fd, struct sockaddr_in *sin) {
     size_t packetLength = (response->statusLength) + (response->headerLength) + (response->contentLength);
     send(fd, resPacket, packetLength, 0);
     close(fd);
-    printString(resPacket);
     printRequest(request);
     printResponse(response);
     freeRequest(request);
