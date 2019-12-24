@@ -3,3 +3,6 @@ peda*
 .gdb_history
 webserver
 testcase/
+__MACOSX/
+testcase.zip
+log.txt

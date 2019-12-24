@@ -49,6 +49,7 @@ static void handlePacket(Server *server, int fd, struct sockaddr_in *sin) {
     close(fd);
     printRequest(request);
     printResponse(response);
+    printString(resPacket);
     freeRequest(request);
     freeResponse(response);
 }
@@ -72,8 +73,8 @@ Server *serverNew(char *path, char *port)
     sin.sin_family = AF_INET;
     sin.sin_port = htons(atoi(port));
 
-    bind(fd, (struct sockaddr*) &sin, sizeof(sin));
-    listen(fd, SOMAXCONN);
+    if (bind(fd, (struct sockaddr*) &sin, sizeof(sin)) < 0) { perror("bind"); exit(-1); }
+    if (listen(fd, SOMAXCONN) < 0) { perror("listen"); exit(-1); }
 
     Server *server = malloc(sizeof(Server));
     server->path = malloc((sizeof(char))* strlen(path)+1);
@@ -82,8 +83,8 @@ Server *serverNew(char *path, char *port)
     server->fd = fd;
 
     memcpy(server->path, path, (sizeof(char))* strlen(path)+1);
-    memcpy(server->port, path, (sizeof(char))* strlen(port)+1);
-    
+    memcpy(server->port, port, (sizeof(char))* strlen(port)+1);
+
     return server;
 }
 
@@ -93,6 +94,8 @@ void serverServe(Server *server)
     int pfd;
     struct sockaddr_in psin;
     signal(SIGCHLD, SIG_IGN); // prevent child zombie
+    printf("server is listening on port %s.\n", server->port);
+    chdir(server->path);
     while(1) {
         int val = sizeof(psin);
         bzero(&psin, sizeof(psin));

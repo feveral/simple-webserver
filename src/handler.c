@@ -28,13 +28,11 @@ static char *execLS(char *path)
 
 char *stringWithATag(char *string)
 {
-    char *html = malloc(2*strlen(string) + 20);
-    memset(html, 0, 2*strlen(string) + 20);
-    memcpy(html, "<a href=\"./", 11);
-    memcpy(html+11, string, strlen(string));
-    memcpy(html+11+strlen(string), "\">", 2);
-    memcpy(html+11+strlen(string)+2, string, strlen(string));
-    memcpy(html+11+2*strlen(string)+2, "</a>\n", 5);
+    List *items = split(string, "/");
+    char *last = listGet(items, (items->count)-1)->value;
+    char *html = malloc(2048);
+    memset(html, 0, strlen(string) + strlen(last) + 20);
+    sprintf(html, "<a href=\"./%s\">%s</a>\n", string, last);
     return html;
 }
 
@@ -44,31 +42,35 @@ char *lsWithHTML(char *lsresult, char *path)
     char *result = malloc(4096);
     memset(result, 0 , 4096);
     int count = 0;
-    memcpy(result, "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">", 67);
+    sprintf(result, "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">");
     count += 67;
-    memcpy(result+count, "<style>body {\nfont-family: monospace;\nwhite-space: pre;\n}</style><hr>", 69);
+    sprintf(result+count, "<style>body {\nfont-family: monospace;\nwhite-space: pre;\n}</style><hr>");
     count += 69;
     for(int i = 1; i < lines->count; i++) {
         List *items = split(listGet(lines, i)->value, " ");
         for(int j = 0; j < 8; j++) {
             char *item = listGet(items, j)->value;
-            memcpy(result+count, item, strlen(item));
-            count += strlen(item);
-            memcpy(result+count, "    ", 4);
-            count += 4;
+            if (j==0) {
+                sprintf(result+count, "%-12s", item);
+                count += 12;
+            } else {
+                sprintf(result+count, "%-9s", item);
+                count += 9;
+            }
         }
         char *pathwithslash = concat(path+1, "/");
         if (!strncmp(pathwithslash, "/")) pathwithslash = concat("", "");
         char *filepath = concat(pathwithslash, listGet(items, 8)->value);
         char *html = stringWithATag(filepath);
-        memcpy(result+count, html, strlen(html));
+        sprintf(result+count, "%s", html);
         count += strlen(html);
         free(pathwithslash);
         free(filepath);
         free(html);
+        listFree(items);
     }
-    memcpy(result+count, "<hr>", 4);
-    printString(result);
+    sprintf(result+count, "<hr>");
+    listFree(lines);
     return result;
 }
 

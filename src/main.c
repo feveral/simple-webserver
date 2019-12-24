@@ -14,8 +14,12 @@
 
 int main(int argc, char *argv[])
 {
-    Server *server = serverNew("./", argv[1]);
-
+    char *port = "80";
+    char *path = "./";
+    if (argc == 1 || argc > 3) { printString("usage: ./webserver [port] [path]"); exit(0); }
+    if (argc >= 2) port = argv[1];
+    if (argc == 3) path = argv[2];
+    Server *server = serverNew(path, port);
     serverUse(server, staticHandler);
     serverUse(server, directoryHandler);
     serverServe(server);
