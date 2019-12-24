@@ -15,8 +15,9 @@ typedef struct request {
 
 void printRequest(Request *request);
 Method toMethod(char *string);
+char *methodToString(Method method);
 Request *HttpRawPacketToRequest(char *packet);
 List *queryStringNew(char *queryString);
 Request *requestNew(Method method, char *path, char *queryString);
-
+void freeRequest(Request *request);
 #endif

@@ -21,6 +21,7 @@ typedef struct response {
 } Response;
 
 Response *responseNew();
+void printResponse(Response *response);
 void responseAddHeader(Response *, KV*);
 void responseSetStatus(Response *, Status);
 void responseSetBody(Response*, char*);
@@ -34,5 +35,8 @@ void freeResponse(Response *response);
 Response *responseIndex(char *dirPath);
 Response *response403(char *filepath);
 Response *responseStaticFile(char *filepath);
+
+char *statusToString(Status status);
+
 
 #endif

@@ -14,31 +14,44 @@
 #include "kv.h"
 #include "handler.h"
 
-static void handlePacket(Server *server, int fd, struct sockaddr_in *sin) {
-    // printf("[info] connected from %s:%d\n",
-    //         inet_ntoa(sin->sin_addr), ntohs(sin->sin_port));
-
-    char reqPacket[20480];
-    recv(fd, reqPacket, sizeof(reqPacket), 0);
-    Request *request = HttpRawPacketToRequest(reqPacket);
-    printRequest(request);
-
+static Response *execHandler(Server *server, Request *request)
+{
     ListCell *current = (server->handlers)->head;
     Response *response = NULL;
     while(current != NULL) {
         Handler *handler = (current->value);
         response = (*handler)(request);
         current = current->next;
-        if (response) break;
+        if (response) return response;
     }
+    return responseNew();
+}
+
+static void printConnectInfo(struct sockaddr_in *sin) 
+{
+    changePrintColor("yellow");
+    printf("[info] connected from %s:%d\n",
+            inet_ntoa(sin->sin_addr), ntohs(sin->sin_port));
+    changePrintColor("white");
+}
+
+static void handlePacket(Server *server, int fd, struct sockaddr_in *sin) {
+
+    printConnectInfo(sin);
+    char reqPacket[20480];
+    recv(fd, reqPacket, sizeof(reqPacket), 0);
+    Request *request = HttpRawPacketToRequest(reqPacket);
+    Response *response = execHandler(server, request);
 
     char *resPacket = responsePacket(response);
     size_t packetLength = (response->statusLength) + (response->headerLength) + (response->contentLength);
-    printf("packetLength = %d\n", packetLength);
     send(fd, resPacket, packetLength, 0);
+    close(fd);
+    printString(resPacket);
+    printRequest(request);
+    printResponse(response);
+    freeRequest(request);
     freeResponse(response);
-    // printf("[info] disconnected from %s:%d\n",
-    //         inet_ntoa(sin->sin_addr), ntohs(sin->sin_port));
 }
 
 void serverUse(Server *server, Handler handler)
@@ -75,13 +88,12 @@ Server *serverNew(char *path, char *port)
     return server;
 }
 
-
 void serverServe(Server *server)
 {
     pid_t pid;
     int pfd;
     struct sockaddr_in psin;
-    signal(SIGCHLD, SIG_IGN);
+    signal(SIGCHLD, SIG_IGN); // prevent child zombie
     while(1) {
         int val = sizeof(psin);
         bzero(&psin, sizeof(psin));

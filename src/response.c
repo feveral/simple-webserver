@@ -4,6 +4,27 @@
 #include "list.h"
 #include "kv.h"
 
+void printResponse(Response *response)
+{
+    changePrintColor("bold-green");
+    printf("[Response]\n");
+    changePrintColor("white");
+    printf(" - status = %s\n", statusToString(response->status));
+    printf(" - content length = %d\n", response->contentLength);
+    changePrintColor("bold-green");
+    printf("[End Of Response]\n");
+    changePrintColor("white");
+}
+
+char *statusToString(Status status)
+{
+    if (status == OK) return "200 OK";
+    else if (status == MOVE_PERMANENTLY) return "301 Move Permanently";
+    else if (status == FORBIDDEN) return "403 Forbidden";
+    else if (status == NOT_FOUND) return "404 Not Found";
+    else return ""; 
+}
+
 Response *responseNew()
 {
     Response *response = malloc(sizeof(Response));
@@ -57,7 +78,6 @@ char* responsePacket(Response *response)
     else if (response->status == NOT_FOUND) packet = "HTTP/1.0 404 Not Found\r\n";
     responseSetStatusLength(response, strlen(packet));
 
-
     // Headers
     ListCell *current = (response->headers)->head;
     while(current != NULL) {
@@ -66,6 +86,7 @@ char* responsePacket(Response *response)
         int keySize = strlen(key);
         int valueSize = strlen(value);
         char *buffer = malloc(keySize + valueSize + 4);
+        memset(buffer, 0, keySize + valueSize + 4);
         memcpy(buffer, key, keySize);
         memcpy(buffer+keySize, ": ", 2);
         memcpy(buffer+keySize+2, value, valueSize);

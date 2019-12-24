@@ -9,9 +9,23 @@
 
 void printRequest(Request *request)
 {
-    printf("path = %s\n", request->path);
-    printf("querystring = \n");
-    listForEach(request->qslist, printKV);
+    changePrintColor("bold-green");
+    printf("[Request]\n");
+    changePrintColor("white");
+    printf(" - method = %s\n", methodToString(request->method));
+    printf(" - path = %s\n", request->path);
+    printf(" - querystring = ");
+    changePrintColor("red");
+    ListCell *current = request->qslist->head;
+    while(current != NULL) {
+        printf("<%s, %s> ", 
+            ((KV *)(current->value))->key,
+            ((KV *)(current->value))->value);
+        current = current->next;
+    }
+    changePrintColor("bold-green");
+    printf("\n[End Of Request]\n");
+    changePrintColor("white");
 }
 
 Method toMethod(char *string)
@@ -19,6 +33,13 @@ Method toMethod(char *string)
     if (!strncmp(string, "GET", 3)) return GET;
     else if (!strncmp(string, "POST", 4)) return POST;
     else return OTHER;
+}
+
+char *methodToString(Method method)
+{
+    if (method == GET) return "GET";
+    else if (method == POST) return "POST";
+    else return "OTHER";
 }
 
 Request *HttpRawPacketToRequest(char *packet)
@@ -69,4 +90,11 @@ Request *requestNew(Method method, char *path, char *queryString)
     memcpy(request->path, path, strlen(path) + 1);
     request->qslist = queryStringNew(queryString);
     return request;
+}
+
+void freeRequest(Request *request)
+{
+    free(request->path);
+    free(request->qslist);
+    free(request);
 }
