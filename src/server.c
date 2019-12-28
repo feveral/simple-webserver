@@ -49,7 +49,6 @@ static void handlePacket(Server *server, int fd, struct sockaddr_in *sin) {
     close(fd);
     printRequest(request);
     printResponse(response);
-    printString(resPacket);
     freeRequest(request);
     freeResponse(response);
 }
@@ -93,8 +92,8 @@ void serverServe(Server *server)
     pid_t pid;
     int pfd;
     struct sockaddr_in psin;
+    //printf("server is listening on port %s.\n", server->port);
     signal(SIGCHLD, SIG_IGN); // prevent child zombie
-    printf("server is listening on port %s.\n", server->port);
     chdir(server->path);
     while(1) {
         int val = sizeof(psin);

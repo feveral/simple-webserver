@@ -8,4 +8,6 @@ typedef Response *(*Handler)(Request *);
 
 Response *staticHandler(Request *req);
 Response *directoryHandler(Request *req);
+Response *cgiHandler(Request *req);
+
 #endif

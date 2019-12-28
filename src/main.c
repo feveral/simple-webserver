@@ -20,6 +20,7 @@ int main(int argc, char *argv[])
     if (argc >= 2) port = argv[1];
     if (argc == 3) path = argv[2];
     Server *server = serverNew(path, port);
+    serverUse(server, cgiHandler);
     serverUse(server, staticHandler);
     serverUse(server, directoryHandler);
     serverServe(server);

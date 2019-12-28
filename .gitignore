@@ -6,3 +6,6 @@ testcase/
 __MACOSX/
 testcase.zip
 log.txt
+nohup.out
+test.c
+test
