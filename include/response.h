@@ -33,7 +33,9 @@ char* findMimeType(char *filename);
 void freeResponse(Response *response);
 
 Response *responseIndex(char *dirPath);
+Response *response301(char *filepath, char *newpath);
 Response *response403(char *filepath);
+Response *response404(char *filepath);
 Response *responseStaticFile(char *filepath);
 
 char *statusToString(Status status);

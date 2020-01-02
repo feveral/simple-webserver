@@ -1,6 +1,7 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
 #include "utility.h"
 #include "list.h"
 
@@ -20,6 +21,7 @@ void changePrintColor(char *color)
     else if (!strncmp(color, "bold-cyan", 9)) printf("\033[1;36m");
     else if (!strncmp(color, "white", 5)) printf("\033[0m");
     else printf("\033[0m");
+    fflush(stdout);
 }
 
 void printString(char *string)
@@ -69,13 +71,20 @@ char *readfile(char *filename)
     return buff;
 }
 
-int isFile(char *filename)
+int isFileReadable(char *filename)
 {
     FILE *file = fopen(filename, "r");
     close(file);
     if (file) {
         return 1;
-    } else return 0;
+    } else return 0;    
+}
+
+int isFile(char *filename)
+{
+    struct stat s;
+    stat(filename, &s);
+    return S_ISREG(s.st_mode) == 1;
 }
 
 int isDir(char *filename)
@@ -86,7 +95,6 @@ int isDir(char *filename)
         return 1;
     } else return 0;
 }
-
 
 char *concat(const char *s1, const char *s2)
 {

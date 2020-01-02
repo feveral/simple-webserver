@@ -62,7 +62,7 @@ void serverUse(Server *server, Handler handler)
 
 Server *serverNew(char *path, char *port)
 {
-    int fd; 
+    int fd;
     unsigned val = 1;
     struct sockaddr_in sin;
     fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);

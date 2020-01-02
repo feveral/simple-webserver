@@ -1,8 +1,11 @@
 #include <dirent.h>
 #include <stdio.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 #include "handler.h"
 #include "request.h"
 #include "response.h"
+#include "string.h"
 #include "utility.h"
 #include "kv.h"
 
@@ -61,8 +64,12 @@ char *lsWithHTML(char *lsresult, char *path)
                 count += 9;
             }
         }
-        char *pathwithslash = concat(path+1, "/");
-        if (!strncmp(pathwithslash, "/")) pathwithslash = concat("", "");
+        char *pathwithslash;
+        if (path[strlen(path)-1] != '/')
+            pathwithslash = concat(path+1, "/");
+        else pathwithslash = concat(path+1, "");
+
+        if (!strncmp(pathwithslash, "/", 1)) pathwithslash = concat("", "");
         char *filepath = concat(pathwithslash, listGet(items, 8)->value);
         char *html = stringWithATag(filepath);
         sprintf(result+count, "%s", html);
@@ -99,6 +106,9 @@ Response *directoryHandler(Request *req)
     
     if (dir) {
         closedir(dir);
+        if (req->path[strlen(req->path)-1] != '/') {
+            return response301(req->path, concat(req->path, "/"));
+        }
         Response *response = responseIndex(req->path+1);
         if (response) return response;
         else response = responseNew();
@@ -115,46 +125,35 @@ Response *cgiHandler(Request *req)
 {
     List *dotSplits = split(req->path, ".");
     char *ext = (listGet(dotSplits, (dotSplits->count)-1)->value);
-    if (strncmp(ext, "cgi")) { listFree(dotSplits); return NULL; }
+    if (strncmp(ext, "cgi", 3)) { listFree(dotSplits); return NULL; }
 
     int fd[2];
     pipe(fd);
     pid_t pid = fork();
     if (pid == 0) {
         close(fd[0]);
-        char *argv[ ]={"./testcase/printenv_sh.cgi", 0}; 
+        char *command = malloc(1024);
+        memset(command, 0, 1024);
+        for (int i = 0; i < req->qslist->count; i++) {
+            KV *kv = listGet(req->qslist, i)->value;
+            strcat(command, kv->key);
+            strcat(command, "=");
+            strcat(command, kv->value);
+        }
+        strcat(command, " .");
+        strcat(command, req->path);
         dup2(fd[1], 1);
-        char *envp[]={0,NULL};
-        execve("./testcase/printenv_sh.cgi", argv, NULL);
+        system(command);
         exit(0);
     } else if (pid > 0) {
-
         size_t contentLength = 0;
         size_t size = 20480;
         char buffer[size];
-        memset(buffer, 0, size);
-
-        size_t len = 0;
-        char buf[1024];
-        memset(&buf, 0, 1024);
-        // while((len = read(fd[0], buf, sizeof(buf))) > 0) {
-        //     printf("%d\n", len);
-        //     memcpy(buffer+contentLength, buf, len);
-        //     contentLength += len;
-        // }
-        // len = read(fd[0], buf, sizeof(buf));
-        // contentLength += len;
-        // memcpy(buffer, buf, len);
-        // len = read(fd[0], buf, sizeof(buf));
-        // contentLength += len;
-        // memcpy(buffer+len, buf, len);
-
-        // printf("%d\n", contentLength);
-
-        // contentLength = read(fd[0], buffer, size);
-
-        for (int i = 0 ; i < contentLength ; i++) {
-            printf("%c", buffer[i]);
+        memset(&buffer, 0, size);
+        fcntl(fd[0], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
+        wait();
+        while(   (read(fd[0], buffer+contentLength, 1)) > 0) { 
+            contentLength += 1;
         }
         Response *response = responseNew();
         responseSetBody(response, buffer);

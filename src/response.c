@@ -73,7 +73,7 @@ char* responsePacket(Response *response)
     char *packet = "";
     // Status
     if (response->status == OK) packet = "HTTP/1.0 200 OK\r\n";
-    else if (response->status == MOVE_PERMANENTLY) packet = "HTTP/1.0 200 Move Permanently\r\n";
+    else if (response->status == MOVE_PERMANENTLY) packet = "HTTP/1.0 301 Move Permanently\r\n";
     else if (response->status == FORBIDDEN) packet = "HTTP/1.0 403 Forbidden\r\n";
     else if (response->status == NOT_FOUND) packet = "HTTP/1.0 404 Not Found\r\n";
     responseSetStatusLength(response, strlen(packet));
@@ -138,9 +138,11 @@ void freeResponse(Response *response)
 
 Response *responseIndex(char *dirPath)
 {
-    char *indexPath = concat(dirPath, "/index.html");
-    if (isFile(indexPath)) {
+    char *indexPath = concat(dirPath, "index.html");
+    if (isFile(indexPath) && isFileReadable(indexPath)) {
         return responseStaticFile(indexPath);
+    } else if (isFile(indexPath) && !isFileReadable(indexPath)) {
+        return response404(indexPath);
     } else return NULL;
 }
 
@@ -149,7 +151,24 @@ Response *response403(char *filepath)
     Response *response = responseNew();
     responseSetStatus(response, FORBIDDEN);
     responseSetBody(response, "<h1>Forbidden</h1><p>File is missing</p>");
-    responseSetContentLength(response, 39);
+    responseSetContentLength(response, 40);
+    return response;
+}
+
+Response *response404(char *filepath)
+{
+    Response *response = responseNew();
+    responseSetStatus(response, NOT_FOUND);
+    responseSetBody(response, "<h1>Not Found</h1><p>You don\'t have permission.</p>");
+    responseSetContentLength(response, 51);
+    return response;
+}
+
+Response *response301(char *filepath, char *newpath)
+{
+    Response *response = responseNew();
+    responseSetStatus(response, MOVE_PERMANENTLY);
+    responseAddHeader(response, kvNew("Location", newpath));
     return response;
 }
 
