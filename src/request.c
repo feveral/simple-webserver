@@ -60,6 +60,8 @@ Request *HttpRawPacketToRequest(char *packet)
     memcpy(request->path, path, strlen(path) + 1);
     request->qslist = queryStringNew(queryString);
 
+    request->body = (strstr(packet, "\r\n\r\n")) + 4;
+
     listFree(lines);
     listFree(startlineItems);
     listFree(routeItems);
@@ -82,6 +84,7 @@ List *queryStringNew(char *queryString)
     return qslist;
 }
 
+// no use function
 Request *requestNew(Method method, char *path, char *queryString)
 {
     Request *request = malloc(sizeof(Request));

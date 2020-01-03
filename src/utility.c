@@ -89,11 +89,9 @@ int isFile(char *filename)
 
 int isDir(char *filename)
 {
-    DIR* dir = opendir(filename);
-    if (dir) {
-        closedir(dir);
-        return 1;
-    } else return 0;
+    struct stat s;
+    stat(filename, &s);
+    return S_ISDIR(s.st_mode) == 1;
 }
 
 char *concat(const char *s1, const char *s2)

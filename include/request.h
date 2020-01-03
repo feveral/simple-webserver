@@ -11,6 +11,7 @@ typedef struct request {
     Method method;
     char *path;
     List *qslist; // List of kv
+    char *body;
 } Request;
 
 void printRequest(Request *request);

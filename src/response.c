@@ -150,8 +150,8 @@ Response *response403(char *filepath)
 {
     Response *response = responseNew();
     responseSetStatus(response, FORBIDDEN);
-    responseSetBody(response, "<h1>Forbidden</h1><p>File is missing</p>");
-    responseSetContentLength(response, 40);
+    responseSetBody(response, "<h1>403 Forbidden</h1><p>File is missing</p>");
+    responseSetContentLength(response, 44);
     return response;
 }
 
@@ -159,8 +159,8 @@ Response *response404(char *filepath)
 {
     Response *response = responseNew();
     responseSetStatus(response, NOT_FOUND);
-    responseSetBody(response, "<h1>Not Found</h1><p>You don\'t have permission.</p>");
-    responseSetContentLength(response, 51);
+    responseSetBody(response, "<h1>404 Not Found</h1><p>You don\'t have permission.</p>");
+    responseSetContentLength(response, 55);
     return response;
 }
 

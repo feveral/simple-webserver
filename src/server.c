@@ -92,7 +92,7 @@ void serverServe(Server *server)
     pid_t pid;
     int pfd;
     struct sockaddr_in psin;
-    //printf("server is listening on port %s.\n", server->port);
+    printf("server is listening on port %s.\n", server->port);
     signal(SIGCHLD, SIG_IGN); // prevent child zombie
     chdir(server->path);
     while(1) {

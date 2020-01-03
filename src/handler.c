@@ -20,8 +20,7 @@ static char *execLS(char *path)
         dup2(fd[1], 1);
         system(command);
         exit(0);
-    }
-    else if (pid > 0) {
+    } else if (pid > 0) {
         close(fd[1]);
         size_t size = 10240;
         char *buffer = malloc(size);
@@ -91,21 +90,19 @@ Response *staticHandler(Request *req)
     char *filename = (req->path) + 1;
     if (!strncmp(req->path, "/", strlen(req->path))) return NULL; // req->path == "/"
     if (isDir(filename)) return NULL;
+    if (isFile(filename) && !isFileReadable(filename)) return response404(filename);
     if (!isFile(filename)) return response403(filename);
     return responseStaticFile(filename);
 }
 
 Response *directoryHandler(Request *req)
 {
-    DIR* dir;
-    struct dirent *ptr;
-
+    char *dirpath;
     if (!strncmp(req->path, "/", strlen(req->path))){
-        dir = opendir("./");
-    } else dir = opendir(req->path + 1);
-    
-    if (dir) {
-        closedir(dir);
+        dirpath = "./";
+    } else dirpath = req->path + 1;
+
+    if (isDir(dirpath)) {
         if (req->path[strlen(req->path)-1] != '/') {
             return response301(req->path, concat(req->path, "/"));
         }
@@ -123,15 +120,20 @@ Response *directoryHandler(Request *req)
 
 Response *cgiHandler(Request *req)
 {
+    if(!strncmp(req->path, "/", strlen(req->path))) return NULL;
     List *dotSplits = split(req->path, ".");
-    char *ext = (listGet(dotSplits, (dotSplits->count)-1)->value);
-    if (strncmp(ext, "cgi", 3)) { listFree(dotSplits); return NULL; }
+    List *slashSplits = split(req->path, "/");
+    char *ext = listGet(dotSplits, (dotSplits->count)-1)->value;
+    char *parentdirname = listGet(slashSplits, (slashSplits->count)-2)->value;
+    char *input = "";
+    
+    if (strncmp(ext, "cgi", 3) && strstr(parentdirname, "cgi") == 0 ) { listFree(dotSplits); return NULL; }
+    if (req->method == POST) input = req->body;
 
     int fd[2];
     pipe(fd);
     pid_t pid = fork();
     if (pid == 0) {
-        close(fd[0]);
         char *command = malloc(1024);
         memset(command, 0, 1024);
         for (int i = 0; i < req->qslist->count; i++) {
@@ -140,10 +142,15 @@ Response *cgiHandler(Request *req)
             strcat(command, "=");
             strcat(command, kv->value);
         }
-        strcat(command, " .");
+        strcat(command, "/bin/bash -c \".");
         strcat(command, req->path);
+        strcat(command, " <<< \'");
+        strcat(command, req->body);
+        strcat(command, "\'\"");
         dup2(fd[1], 1);
         system(command);
+        close(fd[0]);
+        close(fd[1]);
         exit(0);
     } else if (pid > 0) {
         size_t contentLength = 0;
@@ -155,6 +162,8 @@ Response *cgiHandler(Request *req)
         while(   (read(fd[0], buffer+contentLength, 1)) > 0) { 
             contentLength += 1;
         }
+        close(fd[0]);
+        close(fd[1]);
         Response *response = responseNew();
         responseSetBody(response, buffer);
         responseAddHeader(response, kvNew("Content-Type", "text/plain"));
