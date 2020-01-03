@@ -80,7 +80,6 @@ char *lsWithHTML(char *lsresult, char *path)
     }
     sprintf(result+count, "<hr>");
     count += 4;
-    sprintf(result+count, "<h3 style=\"text-align:center;\">You can not hack me!</h3>");
     listFree(lines);
     return result;
 }
@@ -126,7 +125,7 @@ Response *cgiHandler(Request *req)
     char *ext = listGet(dotSplits, (dotSplits->count)-1)->value;
     char *parentdirname = listGet(slashSplits, (slashSplits->count)-2)->value;
     char *input = "";
-    
+
     if (strncmp(ext, "cgi", 3) && strstr(parentdirname, "cgi") == 0 ) { listFree(dotSplits); return NULL; }
     if (req->method == POST) input = req->body;
 
