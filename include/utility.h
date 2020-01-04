@@ -10,6 +10,7 @@ char * concat(const char *s1, const char *s2);
 size_t fileLength(char *filename);
 char *readfile(char *filename);
 int isFileReadable(char *filename);
+int isDirReadable(char *filename);
 int isFile(char *filename);
 int isDir(char *filename);
 

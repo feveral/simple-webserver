@@ -24,7 +24,7 @@ static Response *execHandler(Server *server, Request *request)
         current = current->next;
         if (response) return response;
     }
-    return responseNew();
+    return response403(request->path);
 }
 
 static void printConnectInfo(struct sockaddr_in *sin) 

@@ -141,26 +141,38 @@ Response *responseIndex(char *dirPath)
     char *indexPath = concat(dirPath, "index.html");
     if (isFile(indexPath) && isFileReadable(indexPath)) {
         return responseStaticFile(indexPath);
-    } else if (isFile(indexPath) && !isFileReadable(indexPath)) {
-        return response404(indexPath);
+    // } else if (isFile(indexPath) && !isFileReadable(indexPath)) {
+    //     return response404(indexPath);
     } else return NULL;
 }
 
 Response *response403(char *filepath)
 {
     Response *response = responseNew();
+    char *body = malloc(1024);
+    memset(body, 0, 1024);
+    strcat(body, "<h1>403 Forbidden</h1>");
+    strcat(body, "<p>File is missing : ");
+    strcat(body, filepath);
+    strcat(body, "</p>");
     responseSetStatus(response, FORBIDDEN);
-    responseSetBody(response, "<h1>403 Forbidden</h1><p>File is missing</p>");
-    responseSetContentLength(response, 44);
+    responseSetBody(response, body);
+    responseSetContentLength(response, strlen(body));
     return response;
 }
 
 Response *response404(char *filepath)
 {
     Response *response = responseNew();
+    char *body = malloc(1024);
+    memset(body, 0, 1024);
+    strcat(body, "<h1>404 Not Found</h1>");
+    strcat(body, "<p>You don\'t have permission : ");
+    strcat(body, filepath);
+    strcat(body, "</p>");
     responseSetStatus(response, NOT_FOUND);
-    responseSetBody(response, "<h1>404 Not Found</h1><p>You don\'t have permission.</p>");
-    responseSetContentLength(response, 55);
+    responseSetBody(response, body);
+    responseSetContentLength(response, strlen(body));
     return response;
 }
 

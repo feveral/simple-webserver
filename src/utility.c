@@ -74,17 +74,21 @@ char *readfile(char *filename)
 int isFileReadable(char *filename)
 {
     FILE *file = fopen(filename, "r");
-    close(file);
     if (file) {
+        close(file);
         return 1;
-    } else return 0;    
+    } else {
+        close(file);
+        return 0;    
+    }
 }
 
 int isFile(char *filename)
 {
-    struct stat s;
+    struct stat s, ls;
+    lstat(filename, &ls);
     stat(filename, &s);
-    return S_ISREG(s.st_mode) == 1;
+    return S_ISREG(s.st_mode) == 1 || S_ISLNK(ls.st_mode) == 1;
 }
 
 int isDir(char *filename)
@@ -92,6 +96,18 @@ int isDir(char *filename)
     struct stat s;
     stat(filename, &s);
     return S_ISDIR(s.st_mode) == 1;
+}
+
+int isDirReadable(char *filename)
+{
+    DIR *dir = opendir(filename);
+    if (dir == NULL) {
+        closedir(dir);
+        return 0;
+    } else {
+        closedir(dir);
+        return 1;
+    }
 }
 
 char *concat(const char *s1, const char *s2)

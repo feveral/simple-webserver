@@ -90,7 +90,7 @@ Response *staticHandler(Request *req)
     if (!strncmp(req->path, "/", strlen(req->path))) return NULL; // req->path == "/"
     if (isDir(filename)) return NULL;
     if (isFile(filename) && !isFileReadable(filename)) return response404(filename);
-    if (!isFile(filename)) return response403(filename);
+    if (!isFile(filename)) return response403(req->path);
     return responseStaticFile(filename);
 }
 
@@ -101,7 +101,7 @@ Response *directoryHandler(Request *req)
         dirpath = "./";
     } else dirpath = req->path + 1;
 
-    if (isDir(dirpath)) {
+    if (isDir(dirpath) && isDirReadable(dirpath)) {
         if (req->path[strlen(req->path)-1] != '/') {
             return response301(req->path, concat(req->path, "/"));
         }
@@ -114,7 +114,10 @@ Response *directoryHandler(Request *req)
         responseAddHeader(response, kvNew("Content-Type", "text/html"));
         responseSetContentLength(response, strlen(lsResult));
         return response;
-    } else return NULL;
+    } else if (isDir(dirpath) && !isDirReadable(dirpath)) {
+        return response404(dirpath);
+    }
+    return NULL;
 }
 
 Response *cgiHandler(Request *req)
