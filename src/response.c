@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdio.h>
 #include "response.h"
 #include "utility.h"
 #include "list.h"
