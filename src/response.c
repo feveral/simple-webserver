@@ -141,8 +141,6 @@ Response *responseIndex(char *dirPath)
     char *indexPath = concat(dirPath, "index.html");
     if (isFile(indexPath) && isFileReadable(indexPath)) {
         return responseStaticFile(indexPath);
-    // } else if (isFile(indexPath) && !isFileReadable(indexPath)) {
-    //     return response404(indexPath);
     } else return NULL;
 }
 
