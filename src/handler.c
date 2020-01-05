@@ -151,6 +151,7 @@ Response *cgiHandler(Request *req)
         putenv(method_env);
         putenv(uri_env);
         putenv(script_name);
+        putenv(qsenv);
         putenv(gateway_env);
         putenv(remote_addr_env);
         putenv(remote_port_env);
