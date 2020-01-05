@@ -137,14 +137,30 @@ Response *cgiHandler(Request *req)
     pipe(fd);
     pid_t pid = fork();
     if (pid == 0) {
+        char *method_env = concat("REQUEST_METHOD=", methodToString(req->method));
+        char *uri_env = concat("REQUEST_URI=", req->uri);
+        char *content_length_env = concat("CONTENT_LENGTH=", requestGetHeader(req, "Content-Length"));
+        char *content_type_env = concat("CONTENT_TYPE=", requestGetHeader(req, "Content-Type"));
+        char *script_name = concat("SCRIPT_NAME=", req->path);
+        char *qsenv = concat("QUERY_STRING=", req->queryString);
+        char *gateway_env = "GATEWAY_INTERFACE=CGI/1.1";
+        char *remote_addr_env = concat("REMOTE_ADDR=", req->clientIP);
+        char *remote_port_env = concat("REMOTE_PORT=", intToString(req->clientPort));
+        char *path_env = "PATH=/bin:/usr/bin:/usr/local/bin";
+
+        putenv(method_env);
+        putenv(uri_env);
+        putenv(script_name);
+        putenv(gateway_env);
+        putenv(remote_addr_env);
+        putenv(remote_port_env);
+        putenv(path_env);
+
+        if (req->method == POST) putenv(content_type_env);
+        if (req->method == POST) putenv(content_length_env);
+
         char *command = malloc(1024);
         memset(command, 0, 1024);
-        for (int i = 0; i < req->qslist->count; i++) {
-            KV *kv = listGet(req->qslist, i)->value;
-            strcat(command, kv->key);
-            strcat(command, "=");
-            strcat(command, kv->value);
-        }
         strcat(command, "/bin/bash -c \".");
         strcat(command, req->path);
         strcat(command, " <<< \'");

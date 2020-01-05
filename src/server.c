@@ -40,7 +40,7 @@ static void handlePacket(Server *server, int fd, struct sockaddr_in *sin) {
     printConnectInfo(sin);
     char reqPacket[20480];
     recv(fd, reqPacket, sizeof(reqPacket), 0);
-    Request *request = HttpRawPacketToRequest(reqPacket);
+    Request *request = requestNew(reqPacket, sin);
     Response *response = execHandler(server, request);
 
     char *resPacket = responsePacket(response);

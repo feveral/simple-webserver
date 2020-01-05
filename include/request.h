@@ -9,7 +9,12 @@ typedef enum Method {
 
 typedef struct request {
     Method method;
+    char *uri;
+    char *clientIP;
+    int clientPort;
+    List *headers;
     char *path;
+    char *queryString;
     List *qslist; // List of kv
     char *body;
 } Request;
@@ -17,8 +22,9 @@ typedef struct request {
 void printRequest(Request *request);
 Method toMethod(char *string);
 char *methodToString(Method method);
-Request *HttpRawPacketToRequest(char *packet);
-List *queryStringNew(char *queryString);
-Request *requestNew(Method method, char *path, char *queryString);
+Request *requestNew(char *packet, struct sockaddr_in *sin);
+List *queryListNew(char *queryString);
+List *headerListNew(char *packet);
+char *requestGetHeader(Request *request, char *name);
 void freeRequest(Request *request);
 #endif

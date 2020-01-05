@@ -1,6 +1,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <arpa/inet.h>
 
 #include "request.h"
 #include "utility.h"
@@ -42,24 +45,32 @@ char *methodToString(Method method)
     else return "OTHER";
 }
 
-Request *HttpRawPacketToRequest(char *packet)
+Request *requestNew(char *packet, struct sockaddr_in *sin)
 {
     List *lines = split(packet, "\r\n");
     List *startlineItems = split((listGet(lines, 0))->value, " ");
     List *routeItems = split((listGet(startlineItems, 1))->value, "?");
     
     Method method = toMethod(listGet(startlineItems, 0)->value);
+    char *uri = (listGet(startlineItems, 1))->value;
     char *path = (listGet(routeItems, 0))->value;
     char *queryString;
     if (routeItems->count == 1) queryString = "";
     else queryString = listGet(routeItems, 1)->value;
 
     Request *request = malloc(sizeof(Request));
+    request->clientIP = inet_ntoa(sin->sin_addr);
+    request->clientPort = ntohs(sin->sin_port);
     request->method = method;
-    request->path = malloc(strlen(path) + 1);
-    memcpy(request->path, path, strlen(path) + 1);
-    request->qslist = queryStringNew(queryString);
 
+    request->uri = malloc(strlen(uri) + 1);
+    request->path = malloc(strlen(path) + 1);
+    request->queryString = malloc(strlen(queryString) + 1);
+    memcpy(request->path, path, strlen(path) + 1);
+    memcpy(request->queryString, queryString, strlen(queryString) + 1);
+    memcpy(request->uri, uri, strlen(uri) + 1);
+    request->qslist = queryListNew(queryString);
+    request->headers = headerListNew(packet);
     request->body = (strstr(packet, "\r\n\r\n")) + 4;
 
     listFree(lines);
@@ -69,7 +80,7 @@ Request *HttpRawPacketToRequest(char *packet)
     return request;
 }
 
-List *queryStringNew(char *queryString)
+List *queryListNew(char *queryString)
 {
     if (strlen(queryString) == 0) return listNew();
     List *splitItems = split(queryString, "&");
@@ -84,16 +95,41 @@ List *queryStringNew(char *queryString)
     return qslist;
 }
 
-// no use function
-Request *requestNew(Method method, char *path, char *queryString)
+List *headerListNew(char *packet)
 {
-    Request *request = malloc(sizeof(Request));
-    request->method = method;
-    request->path = malloc(strlen(path) + 1);
-    memcpy(request->path, path, strlen(path) + 1);
-    request->qslist = queryStringNew(queryString);
-    return request;
+    List *headers = listNew();
+    List *lines = split(packet, "\r\n");
+    for(int i = 1; i< lines->count-2; i++) {
+        char *key, *value;
+        int firstColonIndex = 0;
+        char *headerline = listGet(lines, i)->value;
+        for(int j = 0; j < strlen(headerline); j++) {
+            if (headerline[j] == ':') {
+                firstColonIndex = j;
+                break;
+            }
+        }
+        KV *kv = kvNew(subString(headerline, 0, firstColonIndex), 
+                        subString(headerline, firstColonIndex+2, strlen(headerline)));
+        listAppend(headers, listCellNew(kv, sizeof(KV)));
+    }
+    return headers;
 }
+
+char *requestGetHeader(Request *request, char *name)
+{
+    List *headers = request->headers;
+    ListCell *current = headers->head;
+    while(current != NULL) {
+        KV *kv = current->value;
+        if (!strncmp(kv->key, name, strlen(kv->key))) {
+            return kv->value;
+        }
+        current = current->next;
+    }
+    return "";
+}
+
 
 void freeRequest(Request *request)
 {

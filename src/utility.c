@@ -118,3 +118,18 @@ char *concat(const char *s1, const char *s2)
     return result;
 }
 
+char * subString(char *string, int start, int end)
+{
+    char *substring = malloc(sizeof(char) * (end - start) );
+    for (int i = 0; i < strlen(string) ; i++) {
+        strncpy(substring, string + start, end - start);
+    }
+    return substring;
+}
+
+char * intToString(int num)
+{
+    char *str = malloc(sizeof(char) * 64);
+    sprintf(str,"%d",num);
+    return str;
+}
