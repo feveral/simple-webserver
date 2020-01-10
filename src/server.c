@@ -36,7 +36,6 @@ static void printConnectInfo(struct sockaddr_in *sin)
 }
 
 static void handlePacket(Server *server, int fd, struct sockaddr_in *sin) {
-
     printConnectInfo(sin);
     char reqPacket[20480];
     recv(fd, reqPacket, sizeof(reqPacket), 0);
@@ -57,7 +56,7 @@ void serverUse(Server *server, Handler handler)
 {
     Handler *hp = malloc(sizeof(Handler));
     *(hp) = handler;
-    listAppend(server->handlers, listCellNew(hp, sizeof(Handler)));
+    listAppend(server->handlers, hp, sizeof(Handler));
 }
 
 Server *serverNew(char *path, char *port)

@@ -48,15 +48,15 @@ char *methodToString(Method method)
 Request *requestNew(char *packet, struct sockaddr_in *sin)
 {
     List *lines = split(packet, "\r\n");
-    List *startlineItems = split((listGet(lines, 0))->value, " ");
-    List *routeItems = split((listGet(startlineItems, 1))->value, "?");
+    List *startlineItems = split((listGet(lines, 0)), " ");
+    List *routeItems = split((listGet(startlineItems, 1)), "?");
     
-    Method method = toMethod(listGet(startlineItems, 0)->value);
-    char *uri = (listGet(startlineItems, 1))->value;
-    char *path = (listGet(routeItems, 0))->value;
+    Method method = toMethod(listGet(startlineItems, 0));
+    char *uri = (listGet(startlineItems, 1));
+    char *path = (listGet(routeItems, 0));
     char *queryString;
     if (routeItems->count == 1) queryString = "";
-    else queryString = listGet(routeItems, 1)->value;
+    else queryString = listGet(routeItems, 1);
 
     Request *request = malloc(sizeof(Request));
     request->clientIP = inet_ntoa(sin->sin_addr);
@@ -88,8 +88,8 @@ List *queryListNew(char *queryString)
     ListCell *current = splitItems->head;
     while(current != NULL) {
         List *keyandvalue = split(current->value, "=");
-        KV *kv = kvNew((listGet(keyandvalue, 0))->value, (listGet(keyandvalue, 1))->value);
-        listAppend(qslist, listCellNew(kv, sizeof(KV)));
+        KV *kv = kvNew((listGet(keyandvalue, 0)), (listGet(keyandvalue, 1)));
+        listAppend(qslist, kv, sizeof(KV));
         current = current->next;
     }
     return qslist;
@@ -102,7 +102,7 @@ List *headerListNew(char *packet)
     for(int i = 1; i< lines->count-2; i++) {
         char *key, *value;
         int firstColonIndex = 0;
-        char *headerline = listGet(lines, i)->value;
+        char *headerline = listGet(lines, i);
         for(int j = 0; j < strlen(headerline); j++) {
             if (headerline[j] == ':') {
                 firstColonIndex = j;
@@ -111,7 +111,7 @@ List *headerListNew(char *packet)
         }
         KV *kv = kvNew(subString(headerline, 0, firstColonIndex), 
                         subString(headerline, firstColonIndex+2, strlen(headerline)));
-        listAppend(headers, listCellNew(kv, sizeof(KV)));
+        listAppend(headers, kv, sizeof(KV));
     }
     return headers;
 }
@@ -129,7 +129,6 @@ char *requestGetHeader(Request *request, char *name)
     }
     return "";
 }
-
 
 void freeRequest(Request *request)
 {

@@ -15,7 +15,7 @@ typedef struct request {
     List *headers;
     char *path;
     char *queryString;
-    List *qslist; // List of kv
+    List *qslist; // processed querystring, is a List of type KV
     char *body;
 } Request;
 

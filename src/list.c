@@ -20,8 +20,9 @@ ListCell *listCellNew(void *value, size_t size)
     return cell;
 }
 
-void listAppend(List *list, ListCell *cell)
+void listAppend(List *list, void *value, size_t size)
 {
+    ListCell *cell = listCellNew(value, size);
     list->count ++;
     if (list->head == NULL && list->tail == NULL) {
         list->head = cell;
@@ -56,17 +57,16 @@ void listForEach(List *list, void (*func)(void *))
     }
 }
 
-ListCell * listGet(List *list, int index)
+void *listGet(List *list, int index)
 {
     ListCell *current = list->head;
     if (index < list->count) {
-        
         for (int i = 0; i < index; i++) {
             current = current->next;
         }
-        return current;
+        return current->value;
     }
-    return current;
+    return (current->value);
 }
 
 void listFree(List *list)

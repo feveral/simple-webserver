@@ -40,7 +40,7 @@ Response *responseNew()
 
 void responseAddHeader(Response *response, KV *header)
 {
-    listAppend(response->headers, listCellNew(header, sizeof(KV)));
+    listAppend(response->headers, header, sizeof(KV));
 }
 
 void responseSetStatus(Response *response, Status status)
@@ -110,7 +110,7 @@ char* responsePacket(Response *response)
 char* findMimeType(char *filename)
 {
     List *dotSplits = split(filename, ".");
-    char *ext = (listGet(dotSplits, (dotSplits->count)-1)->value);
+    char *ext = (listGet(dotSplits, (dotSplits->count)-1));
     if (!strncmp(ext, "html", 4)) return "text/html";
     else if (!strncmp(ext, "htm", 3)) return "text/html";
     else if (!strncmp(ext, "txt", 3)) return "text/plain";

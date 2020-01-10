@@ -35,7 +35,7 @@ static char *execLS(char *path)
 char *stringWithATag(char *string)
 {
     List *items = split(string, "/");
-    char *last = listGet(items, (items->count)-1)->value;
+    char *last = listGet(items, (items->count)-1);
     char *html = malloc(2048);
     memset(html, 0, strlen(string) + strlen(last) + 20);
     sprintf(html, "<a href=\"/%s\">%s</a>\n", string, last);
@@ -53,9 +53,9 @@ char *lsWithHTML(char *lsresult, char *path)
     sprintf(result+count, "<style>body {\nfont-family: monospace;\nwhite-space: pre;\n}</style><hr>");
     count += 69;
     for(int i = 1; i < lines->count; i++) {
-        List *items = split(listGet(lines, i)->value, " ");
+        List *items = split(listGet(lines, i), " ");
         for(int j = 0; j < 8; j++) {
-            char *item = listGet(items, j)->value;
+            char *item = listGet(items, j);
             if (j == 0) {
                 sprintf(result+count, "%-12s", item);
                 count += 12;
@@ -70,7 +70,7 @@ char *lsWithHTML(char *lsresult, char *path)
         else pathwithslash = concat(path+1, "");
 
         if (!strncmp(pathwithslash, "/", 1)) pathwithslash = concat("", "");
-        char *filepath = concat(pathwithslash, listGet(items, 8)->value);
+        char *filepath = concat(pathwithslash, listGet(items, 8));
         char *html = stringWithATag(filepath);
         sprintf(result+count, "%s", html);
         count += strlen(html);
@@ -126,8 +126,8 @@ Response *cgiHandler(Request *req)
     if(!strncmp(req->path, "/", strlen(req->path))) return NULL;
     List *dotSplits = split(req->path, ".");
     List *slashSplits = split(req->path, "/");
-    char *ext = listGet(dotSplits, (dotSplits->count)-1)->value;
-    char *parentdirname = listGet(slashSplits, (slashSplits->count)-2)->value;
+    char *ext = listGet(dotSplits, (dotSplits->count)-1);
+    char *parentdirname = listGet(slashSplits, (slashSplits->count)-2);
     char *input = "";
 
     if (strncmp(ext, "cgi", 3) && strstr(parentdirname, "cgi") == 0 ) { listFree(dotSplits); return NULL; }

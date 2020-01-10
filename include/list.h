@@ -17,10 +17,10 @@ typedef struct list {
 
 List* listNew();
 ListCell *listCellNew(void *value, size_t size);
-void listAppend(List *list, ListCell *cell);
+void listAppend(List *list, void *value, size_t size);
 void listAppendString(List *list, char *string);
 void listForEach(List *list, void (*func)(void *));
-ListCell* listGet(List *list, int index);
+void* listGet(List *list, int index);
 void listFree(List *list);
 
 #endif
