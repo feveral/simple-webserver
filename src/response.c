@@ -84,14 +84,10 @@ char* responsePacket(Response *response)
     while(current != NULL) {
         char *key = ((KV*)(current->value))->key;
         char *value = ((KV*)(current->value))->value;
-        int keySize = strlen(key);
-        int valueSize = strlen(value);
-        char *buffer = malloc(keySize + valueSize + 4);
-        memset(buffer, 0, keySize + valueSize + 4);
-        memcpy(buffer, key, keySize);
-        memcpy(buffer+keySize, ": ", 2);
-        memcpy(buffer+keySize+2, value, valueSize);
-        memcpy(buffer+keySize+2+valueSize, "\r\n", 2);
+        size_t size = strlen(key) + strlen(value) + 4;
+        char *buffer = malloc(size);
+        memset(buffer, 0, size);
+        sprintf(buffer, "%s: %s\r\n", key, value);
         packet = concat(packet, buffer);
         free(buffer);
         current = current->next;

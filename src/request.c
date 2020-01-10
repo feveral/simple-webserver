@@ -21,13 +21,21 @@ void printRequest(Request *request)
     changePrintColor("red");
     ListCell *current = request->qslist->head;
     while(current != NULL) {
-        printf("<%s, %s> ", 
-            ((KV *)(current->value))->key,
-            ((KV *)(current->value))->value);
+        KV *kv = current->value;
+        printf("<%s, %s> ", kv->key, kv->value);
+        current = current->next;
+    }
+    changePrintColor("white");
+    printf("\n - headers = \n");
+    changePrintColor("red");
+    current = request->headers->head;
+    while(current != NULL) {
+        KV *kv = current->value;
+        printf("    <%s, %s> \n", kv->key, kv->value);
         current = current->next;
     }
     changePrintColor("bold-green");
-    printf("\n[End Of Request]\n");
+    printf("[End Of Request]\n");
     changePrintColor("white");
 }
 
