@@ -1,7 +1,6 @@
-# HW4: Simple Web Server
+# Simple Web Server
 
-- student id: 108062613
-- name: 楊宗翰
+Implementation of a simple HTTP Server using programming language C.
 
 ## Build
 
