@@ -66,7 +66,7 @@ void *listGet(List *list, int index)
         }
         return current->value;
     }
-    return (current->value);
+    return NULL;
 }
 
 void listFree(List *list)
