@@ -147,7 +147,7 @@ Response *response403(char *filepath)
     char *body = malloc(1024);
     memset(body, 0, 1024);
     strcat(body, "<h1>403 Forbidden</h1>");
-    strcat(body, "<p>File is missing : ");
+    strcat(body, "<p>You don\'t have permission : ");
     strcat(body, filepath);
     strcat(body, "</p>");
     responseSetStatus(response, FORBIDDEN);
@@ -162,7 +162,7 @@ Response *response404(char *filepath)
     char *body = malloc(1024);
     memset(body, 0, 1024);
     strcat(body, "<h1>404 Not Found</h1>");
-    strcat(body, "<p>You don\'t have permission : ");
+    strcat(body, "<p>File is missing : ");
     strcat(body, filepath);
     strcat(body, "</p>");
     responseSetStatus(response, NOT_FOUND);

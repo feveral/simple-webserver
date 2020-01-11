@@ -15,5 +15,6 @@ int isFileReadable(char *filename);
 int isDirReadable(char *filename);
 int isFile(char *filename);
 int isDir(char *filename);
+char * execCommand(char *command);
 
 #endif

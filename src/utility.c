@@ -133,3 +133,24 @@ char * intToString(int num)
     sprintf(str,"%d",num);
     return str;
 }
+
+char * execCommand(char *command)
+{
+    int fd[2];
+    pipe(fd);
+    pid_t pid = fork();
+    if (pid == 0){
+        close(fd[0]);
+        dup2(fd[1], 1);
+        system(command);
+        exit(0);
+    } else if (pid > 0) {
+        close(fd[1]);
+        size_t size = 20480;
+        char *buffer = malloc(size);
+        memset(buffer, 0, size);
+        read(fd[0], buffer, size);
+        close(fd[0]);
+        return buffer;
+    }
+}

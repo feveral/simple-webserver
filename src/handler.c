@@ -10,34 +10,12 @@
 #include "utility.h"
 #include "kv.h"
 
-static char *execLS(char *path)
-{
-    char *command = concat("ls -al ", path);
-    int fd[2];
-    pipe(fd);
-    pid_t pid = fork();
-    if (pid == 0){
-        close(fd[0]);
-        dup2(fd[1], 1);
-        system(command);
-        exit(0);
-    } else if (pid > 0) {
-        close(fd[1]);
-        size_t size = 10240;
-        char *buffer = malloc(size);
-        memset(buffer, 0, size);
-        read(fd[0], buffer, size);
-        close(fd[0]);
-        return buffer;
-    }
-}
-
 char *stringWithATag(char *string)
 {
     List *items = split(string, "/");
     char *last = listGet(items, (items->count)-1);
     char *html = malloc(2048);
-    memset(html, 0, strlen(string) + strlen(last) + 20);
+    memset(html, 0, 2048);
     sprintf(html, "<a href=\"/%s\">%s</a>\n", string, last);
     return html;
 }
@@ -90,8 +68,8 @@ Response *staticHandler(Request *req)
     char *filename = (req->path) + 1;
     if (!strncmp(req->path, "/", strlen(req->path))) return NULL; // req->path == "/"
     if (isDir(filename)) return NULL;
-    if (isFile(filename) && !isFileReadable(filename)) return response404(filename);
-    if (!isFile(filename)) return response403(req->path);
+    if (isFile(filename) && !isFileReadable(filename)) return response403(filename);
+    if (!isFile(filename)) return response404(req->path);
     return responseStaticFile(filename);
 }
 
@@ -109,7 +87,7 @@ Response *directoryHandler(Request *req)
         Response *response = responseIndex(req->path+1);
         if (response) return response;
         else response = responseNew();
-        char *lsResult = execLS(req->path + 1);
+        char *lsResult = execCommand(concat("ls -al ", req->path + 1));
         lsResult = lsWithHTML(lsResult, req->path);
         responseSetBody(response, lsResult);
         responseAddHeader(response, kvNew("Content-Type", "text/html"));
@@ -133,40 +111,41 @@ Response *cgiHandler(Request *req)
     if (strncmp(ext, "cgi", 3) && strstr(parentdirname, "cgi") == 0 ) { listFree(dotSplits); return NULL; }
     if (req->method == POST) input = req->body;
 
+    char *method_env = concat("REQUEST_METHOD=", methodToString(req->method));
+    char *uri_env = concat("REQUEST_URI=", req->uri);
+    char *content_length_env = concat("CONTENT_LENGTH=", requestGetHeader(req, "Content-Length"));
+    char *content_type_env = concat("CONTENT_TYPE=", requestGetHeader(req, "Content-Type"));
+    char *script_name = concat("SCRIPT_NAME=", req->path);
+    char *qsenv = concat("QUERY_STRING=", req->queryString);
+    char *gateway_env = "GATEWAY_INTERFACE=CGI/1.1";
+    char *remote_addr_env = concat("REMOTE_ADDR=", req->clientIP);
+    char *remote_port_env = concat("REMOTE_PORT=", intToString(req->clientPort));
+    char *path_env = "PATH=/bin:/usr/bin:/usr/local/bin";
+
+    putenv(method_env);
+    putenv(uri_env);
+    putenv(script_name);
+    putenv(qsenv);
+    putenv(gateway_env);
+    putenv(remote_addr_env);
+    putenv(remote_port_env);
+    putenv(path_env);
+
+    if (req->method == POST) putenv(content_type_env);
+    if (req->method == POST) putenv(content_length_env);
+
+    char *command = malloc(1024);
+    memset(command, 0, 1024);
+    strcat(command, "/bin/bash -c \".");
+    strcat(command, req->path);
+    strcat(command, " <<< \'");
+    strcat(command, req->body);
+    strcat(command, "\'\"");
+
     int fd[2];
     pipe(fd);
     pid_t pid = fork();
     if (pid == 0) {
-        char *method_env = concat("REQUEST_METHOD=", methodToString(req->method));
-        char *uri_env = concat("REQUEST_URI=", req->uri);
-        char *content_length_env = concat("CONTENT_LENGTH=", requestGetHeader(req, "Content-Length"));
-        char *content_type_env = concat("CONTENT_TYPE=", requestGetHeader(req, "Content-Type"));
-        char *script_name = concat("SCRIPT_NAME=", req->path);
-        char *qsenv = concat("QUERY_STRING=", req->queryString);
-        char *gateway_env = "GATEWAY_INTERFACE=CGI/1.1";
-        char *remote_addr_env = concat("REMOTE_ADDR=", req->clientIP);
-        char *remote_port_env = concat("REMOTE_PORT=", intToString(req->clientPort));
-        char *path_env = "PATH=/bin:/usr/bin:/usr/local/bin";
-
-        putenv(method_env);
-        putenv(uri_env);
-        putenv(script_name);
-        putenv(qsenv);
-        putenv(gateway_env);
-        putenv(remote_addr_env);
-        putenv(remote_port_env);
-        putenv(path_env);
-
-        if (req->method == POST) putenv(content_type_env);
-        if (req->method == POST) putenv(content_length_env);
-
-        char *command = malloc(1024);
-        memset(command, 0, 1024);
-        strcat(command, "/bin/bash -c \".");
-        strcat(command, req->path);
-        strcat(command, " <<< \'");
-        strcat(command, req->body);
-        strcat(command, "\'\"");
         dup2(fd[1], 1);
         system(command);
         close(fd[0]);
